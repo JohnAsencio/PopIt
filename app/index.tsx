@@ -11,9 +11,8 @@ export default function HomeScreen() {
   const router = useRouter();
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to the Bubble Popper App!</Text>
-      <Text style={styles.subtitle}>Tap a bubble and start your journey.</Text>
-      <Text style={styles.title}>Tap to Start</Text>
+      <Text style={styles.title}>Pop It!</Text>
+      <Text style={styles.subtitle}>Tap to Start</Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push('./game')}
@@ -42,8 +41,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  subtitle: { fontSize: 16, color: 'gray' },
+  title: { fontSize: 40, fontWeight: 'bold', padding:20 },
+  subtitle: { fontSize: 20, color: 'gray', padding:12, paddingBottom: 30 },
   image: {
     width: 200,
     height: 200,
