@@ -7,42 +7,49 @@ export default function GameScreen() {
   const [highlightedBubbles, setHighlightedBubbles] = useState<number[]>([]);
   const [poppedBubbles, setPoppedBubbles] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
-  const [gridSize, setGridSize] = useState(3);
+  const [gridSize, setGridSize] = useState(0);
   const [gridKey, setGridKey] = useState(0); // Key to force FlatList re-mount
-  const [bubbleSize, setBubbleSize] = useState(60);
+  const [bubbleSize, setBubbleSize] = useState(90);
 
-  // Calculate maximum number of bubbles per row based on screen width and bubble size
-  const calculateColumns = (bubbleSize: number) => {
-    const maxColumns = Math.floor(width / (bubbleSize + 10)); // 10px margin between bubbles
-    return Math.max(3, maxColumns); // Ensure at least 3 columns
+  const calculateColumns = () => {
+    const maxColumns = Math.floor(width / (bubbleSize + 10)); // Max bubbles per row
+    return maxColumns; // Number of bubbles in one row
   };
 
-  // Dynamically adjust grid size and bubble size on level change
-  const generateLevel = () => {
-    // Dynamically calculate grid size based on the screen width and bubble size
-    const size = calculateColumns(bubbleSize); // Calculate grid size based on current bubble size
-    setGridSize(size);
-    setGridKey((prev) => prev + 1); // Change key to force FlatList re-render
+  const calculateRows = () => {
+    const maxRows = Math.floor(height / (bubbleSize + 10) - 2); // Max bubbles per column (leave space for UI)
+    return maxRows;
+  };
 
-    const totalBubbles = size * size;
+  const generateLevel = () => {
+    // Dynamically adjust grid size based on level
+    const maxColumns = calculateColumns();
+    const newGridSize = Math.min(gridSize + 1, maxColumns);
+
+    setGridSize(newGridSize); // Update grid size
+    setGridKey((prev) => prev + 1); // Force FlatList re-render
+
+    const totalBubbles = newGridSize * calculateRows(); // Calculate grid area
     const highlighted = Array.from({ length: level + 2 }, () =>
       Math.floor(Math.random() * totalBubbles)
     );
     setHighlightedBubbles(highlighted);
     setPoppedBubbles([]);
 
-    // Decrease the timer slightly as the level increases
-    const newTimeLeft = Math.max(10, 30 - level); // Minimum timer is 10 seconds
+    // Adjust timer dynamically
+    const newTimeLeft = Math.max(10, 30 - Math.floor(level / 2)); // Minimum timer is 10 seconds
     setTimeLeft(newTimeLeft);
 
-    // Increase the bubble size as the level increases, with a max size of 90
-    const newBubbleSize = Math.min(90, 60 + level * 5); 
-    setBubbleSize(newBubbleSize);
+    // Adjust bubble size every X levels
+    if (level % 5 === 0) {
+      const newBubbleSize = Math.max(40, bubbleSize - 10); // Minimum bubble size is 40
+      setBubbleSize(newBubbleSize);
+    }
   };
 
   useEffect(() => {
-    generateLevel(); // Generate level when the component mounts or level changes
-  }, [level, bubbleSize]);
+    generateLevel(); // Generate new level when the component mounts or level changes
+  }, [level]);
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -88,6 +95,9 @@ export default function GameScreen() {
 
   const restartGame = () => {
     setLevel(1);
+    setGridSize(0); // Reset grid size
+    setBubbleSize(90); // Reset bubble size
+    setTimeLeft(30); // Reset timer
     generateLevel();
   };
 
@@ -117,7 +127,7 @@ export default function GameScreen() {
       <Text style={styles.timer}>Time Left: {timeLeft}s</Text>
       <FlatList
         key={gridKey} // Use the key to force re-render when gridSize changes
-        data={Array(gridSize * gridSize).fill(null)}
+        data={Array(gridSize * calculateRows()).fill(null)} // Adjust data size dynamically
         renderItem={({ index }) => renderBubble({ index })}
         keyExtractor={(_, index) => index.toString()}
         numColumns={gridSize}
@@ -173,4 +183,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-
